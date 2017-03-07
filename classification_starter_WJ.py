@@ -66,7 +66,7 @@
 ## memory requirement by using ElementTree.iterparse(), which does parsing in
 ## a streaming way. See http://eli.thegreenplace.net/2012/03/15/processing-xml-in-python-with-elementtree/
 ## for an example. 
-
+#%%
 import os
 from collections import Counter
 try:
@@ -75,10 +75,10 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from scipy import sparse
-
+from sklearn import svm
 import util
 
-
+#%%
 def extract_feats(ffs, direc="train", global_feat_dict=None):
     """
     arguments:
@@ -228,6 +228,9 @@ def system_call_count_feats(tree):
             c['num_system_calls'] += 1
     return c
 
+def learn_svm():
+    model_svm = svm.SVC(C=1000, kernel='linear')
+    model_svm.fit()
 ## The following function does the feature extraction, learning, and prediction
 #%%
 def main():
@@ -243,10 +246,14 @@ def main():
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, train_dir)
     print "done extracting training features"
     print
-    
+    #return X_train,global_feat_dict,t_train,train_ids
+#%%    
     # TODO train here, and learn your classification parameters
     print "learning..."
-    learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
+    #learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
+    model_svm = svm.SVC(C=1000, kernel='linear')
+    learned_model = model_svm.fit(X_train,t_train)
+    #learned_W = 
     print "done learning"
     print
     
@@ -261,7 +268,8 @@ def main():
     
     # TODO make predictions on text data and write them out
     print "making predictions..."
-    preds = np.argmax(X_test.dot(learned_W),axis=1)
+    #preds = np.argmax(X_test.dot(learned_W),axis=1)
+    preds = learned_model.predict(X_test)
     print "done making predictions"
     print
     
