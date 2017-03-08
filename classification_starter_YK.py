@@ -76,11 +76,20 @@ except ImportError:
 import numpy as np
 from scipy import sparse
 from sklearn import svm, linear_model
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import accuracy_score
 from tempfile import TemporaryFile
 import util
 
+def save_sparse_csr(filename,array):
+    np.savez(filename,data = array.data ,indices=array.indices,
+             indptr =array.indptr, shape=array.shape )
+
+def load_sparse_csr(filename):
+    loader = np.load(filename)
+    return sparse.csr_matrix((  loader['data'], loader['indices'], loader['indptr']),
+                         shape = loader['shape'])
 def find_unique_feats(direc="train",global_feat_dict=None):
 	unique_feats = []
 	for datafile in os.listdir("train"):
@@ -284,20 +293,31 @@ def main():
     # extract features
     print("extracting training features...")
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, feature_list, train_dir)
+    np.savez("training",dict=global_feat_dict,t_train=t_train,train_ids=train_ids)
+    save_sparse_csr(X_train_sparse,X_train)
     print("done extracting training features")
     print()
         # TODO train here, and learn your classification parameters
     print("learning...")
     #%%
-    tuned_parameters = {'C':[1,10,100,1000,5000,10000],'loss':['hinge', 'squared_hinge']}
-    svc_init = svm.LinearSVC()
-    gsearch = GridSearchCV(svc_init,param_grid=tuned_parameters,scoring = 'accuracy',n_jobs = -1)
-    gsearch.fit(X_train,t_train)
-    print(gsearch.best_params_)
-    print(gsearch.best_score_)
-    #%%
-#    model_svm = svm.LinearSVC()
-#    learned_model = model_svm.fit(X_train,t_train)
+#==============================================================================
+#     tuned_parameters = {'C':[1,10,100,1000,5000,10000],'loss':['hinge', 'squared_hinge']}
+#     svc_init = svm.LinearSVC()
+#     gsearch = GridSearchCV(svc_init,param_grid=tuned_parameters,scoring = 'accuracy',n_jobs = -1)
+#     gsearch.fit(X_train,t_train)
+#     print(gsearch.best_params_)
+#     print(gsearch.best_score_)
+#     model_svm = svm.LinearSVC(C=1000, loss = 'hinge')
+#     learned_model = model_svm.fit(X_train,t_train)   
+#==============================================================================
+ #%% Decision Tree Classifier
+    tuned_parameters2 = {'criterion':['gini','entropy'],'class_weight':['None','balanced'],'max_depth':['None',3,5,7]}
+    gsearch2 = GridSearchCV(DecisionTreeClassifier(),param_grid=tuned_parameters2,scoring = 'accuracy',n_jobs = -1)
+    gsearch2.fit(X_train,t_train)
+    print(gsearch2.best_params_)
+    print(gsearch2.best_score_)
+ #%%
+
     print("done learning")
     print()
     
@@ -307,17 +327,20 @@ def main():
     #del train_ids
     print("extracting test features...")
     X_test,_,t_ignore,test_ids = extract_feats(ffs, feature_list, test_dir, global_feat_dict=global_feat_dict)
+    np.savez("testing",t_ignore=t_ignore,test_ids=test_ids)
+    save_sparse_csr(X_test_sparse,X_test)
+    
     print("done extracting test features")
     print()
     
     # TODO make predictions on text data and write them out
     print("making predictions...")
-    preds = gsearch.predict(X_test)
+    #preds = gsearch.predict(X_test)
     print("done making predictions")
     print()
     
     print("writing predictions...")
-    util.write_predictions(preds, test_ids, outputfile)
+    #util.write_predictions(preds, test_ids, outputfile)
     print("done!")
 
 if __name__ == "__main__":
