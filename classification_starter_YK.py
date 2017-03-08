@@ -77,11 +77,16 @@ import numpy as np
 from scipy import sparse
 from sklearn import svm, linear_model
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import accuracy_score
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler  
 from tempfile import TemporaryFile
 import util
 
+
+#Inspired by http://stackoverflow.com/questions/8955448/save-load-scipy-sparse-csr-matrix-in-portable-data-format
 def save_sparse_csr(filename,array):
     np.savez(filename,data = array.data ,indices=array.indices,
              indptr =array.indptr, shape=array.shape )
@@ -280,7 +285,7 @@ def histogram_system_calls(tree,featlist):
 def main():
     train_dir = "train"
     test_dir = "test"
-    outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
+    outputfile = "mypredictions_dt.csv"  # feel free to change this or take it as an argument
     
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [histogram_system_calls]
@@ -311,11 +316,27 @@ def main():
 #     learned_model = model_svm.fit(X_train,t_train)   
 #==============================================================================
  #%% Decision Tree Classifier
-    tuned_parameters2 = {'criterion':['gini','entropy'],'class_weight':['None','balanced'],'max_depth':['None',3,5,7]}
+    tuned_parameters2 = {'criterion':['gini','entropy'],'class_weight':[None,'balanced'],'max_depth':[None,3,5,7,9,15,20,25,30,35,40,50]}
     gsearch2 = GridSearchCV(DecisionTreeClassifier(),param_grid=tuned_parameters2,scoring = 'accuracy',n_jobs = -1)
     gsearch2.fit(X_train,t_train)
     print(gsearch2.best_params_)
     print(gsearch2.best_score_)
+ #%% Random Forest Classifier
+    tuned_parameters3 = {'n_estimators':[5,10,25,50,100],'class_weight':[None,'balanced'],'criterion':['gini','entropy'],'max_depth':[None,5,10,25,35,45,60]}
+    gsearch3 = GridSearchCV(RandomForestClassifier(n_jobs=-1),param_grid=tuned_parameters3,scoring = 'accuracy',n_jobs = -1)
+    gsearch3.fit(X_train,t_train)
+    print(gsearch3.best_params_)
+    print(gsearch3.best_score_)
+#%% Neural Network
+#Apparently need to standardize
+    scaling = StandardScaler(with_mean=False)
+    scaling.fit(X_train)
+    scaled_X_train = scaling.transform(X_train)
+    tuned_parameters4 = {'activation':['relu','tanh','logistic'],'alpha':10.0 ** -np.arange(1, 7),'learning_rate':['constant','adaptive'],'hidden_layer_sizes':[(50,),(100,),(200,),(400,)]}
+    gsearch4 = GridSearchCV(MLPClassifier(),param_grid=tuned_parameters4,scoring = 'accuracy',n_jobs = -1)
+    gsearch4.fit(X_train,t_train)
+    print(gsearch4.best_params_)
+    print(gsearch4.best_score_)
  #%%
 
     print("done learning")
@@ -340,7 +361,7 @@ def main():
     print()
     
     print("writing predictions...")
-    #util.write_predictions(preds, test_ids, outputfile)
+    util.write_predictions(preds, test_ids, outputfile)
     print("done!")
 
 if __name__ == "__main__":
