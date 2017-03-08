@@ -294,7 +294,7 @@ def main():
     print("extracting training features...")
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, feature_list, train_dir)
     np.savez("training",dict=global_feat_dict,t_train=t_train,train_ids=train_ids)
-    save_sparse_csr(X_train_sparse,X_train)
+    save_sparse_csr("X_train_sparse",X_train)
     print("done extracting training features")
     print()
         # TODO train here, and learn your classification parameters
@@ -328,7 +328,7 @@ def main():
     print("extracting test features...")
     X_test,_,t_ignore,test_ids = extract_feats(ffs, feature_list, test_dir, global_feat_dict=global_feat_dict)
     np.savez("testing",t_ignore=t_ignore,test_ids=test_ids)
-    save_sparse_csr(X_test_sparse,X_test)
+    save_sparse_csr("X_test_sparse",X_test)
     
     print("done extracting test features")
     print()
