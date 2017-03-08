@@ -78,6 +78,7 @@ from scipy import sparse
 from sklearn import svm, linear_model
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import accuracy_score
+from tempfile import TemporaryFile
 import util
 
 def find_unique_feats(direc="train",global_feat_dict=None):
