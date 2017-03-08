@@ -76,7 +76,8 @@ except ImportError:
 import numpy as np
 from scipy import sparse
 from sklearn import svm, linear_model
-
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import accuracy_score
 import util
 
 def find_unique_feats(direc="train",global_feat_dict=None):
@@ -284,26 +285,33 @@ def main():
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, feature_list, train_dir)
     print("done extracting training features")
     print()
-    
-    # TODO train here, and learn your classification parameters
+        # TODO train here, and learn your classification parameters
     print("learning...")
-    model_svm = svm.LinearSVC()
-    learned_model = model_svm.fit(X_train,t_train)
+    #%%
+    tuned_parameters = {'C':[1,10,100,1000,5000,10000],'loss':['hinge', 'squared_hinge']}
+    svc_init = svm.LinearSVC()
+    gsearch = GridSearchCV(svc_init,param_grid=tuned_parameters,scoring = 'accuracy',n_jobs = -1)
+    gsearch.fit(X_train,t_train)
+    print(gsearch.best_params_)
+    print(gsearch.best_score_)
+    #%%
+#    model_svm = svm.LinearSVC()
+#    learned_model = model_svm.fit(X_train,t_train)
     print("done learning")
     print()
     
     # get rid of training data and load test data
-    del X_train
-    del t_train
-    del train_ids
+    #del X_train
+    #del t_train
+    #del train_ids
     print("extracting test features...")
-    X_test,_,t_ignore,test_ids = extract_feats(ffs, test_dir, global_feat_dict=global_feat_dict)
+    X_test,_,t_ignore,test_ids = extract_feats(ffs, feature_list, test_dir, global_feat_dict=global_feat_dict)
     print("done extracting test features")
     print()
     
     # TODO make predictions on text data and write them out
     print("making predictions...")
-    preds = learned_model.predict(X_test)
+    preds = gsearch.predict(X_test)
     print("done making predictions")
     print()
     
@@ -312,5 +320,5 @@ def main():
     print("done!")
 
 if __name__ == "__main__":
-    main()
+     main()
     
