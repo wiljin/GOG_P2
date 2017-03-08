@@ -75,7 +75,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from scipy import sparse
-from sklearn import svm
+from sklearn import svm, linear_model
 import util
 
 #%%
@@ -254,6 +254,9 @@ def learn_svm():
     #one vs one proved too computationally intensive
     model_svm = svm.LinearSVC()
     learned_model = model_svm.fit(X_train,t_train)
+    print "learned svm"
+    logreg = linear_model.LogisticRegression()
+    learned_log = logreg.fit(X_train,t_train)
     #learned_W = 
     print "done learning"
     print

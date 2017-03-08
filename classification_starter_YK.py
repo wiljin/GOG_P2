@@ -75,6 +75,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from scipy import sparse
+from sklearn import svm, linear_model
 
 import util
 
@@ -286,7 +287,8 @@ def main():
     
     # TODO train here, and learn your classification parameters
     print("learning...")
-    learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
+    model_svm = svm.LinearSVC()
+    learned_model = model_svm.fit(X_train,t_train)
     print("done learning")
     print()
     
@@ -301,7 +303,7 @@ def main():
     
     # TODO make predictions on text data and write them out
     print("making predictions...")
-    preds = np.argmax(X_test.dot(learned_W),axis=1)
+    preds = learned_model.predict(X_test)
     print("done making predictions")
     print()
     
