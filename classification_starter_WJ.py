@@ -233,7 +233,7 @@ def learn_svm():
     model_svm.fit()
 ## The following function does the feature extraction, learning, and prediction
 #%%
-def main():
+#def main():
     train_dir = "train"
     test_dir = "test"
     outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
@@ -247,16 +247,17 @@ def main():
     print "done extracting training features"
     print
     #return X_train,global_feat_dict,t_train,train_ids
-#%%    
+ #%%   
     # TODO train here, and learn your classification parameters
     print "learning..."
     #learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
-    model_svm = svm.SVC(C=1000, kernel='linear')
+    #one vs one proved too computationally intensive
+    model_svm = svm.LinearSVC()
     learned_model = model_svm.fit(X_train,t_train)
     #learned_W = 
     print "done learning"
     print
-    
+#%%
     # get rid of training data and load test data
     del X_train
     del t_train
